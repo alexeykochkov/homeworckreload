@@ -1,14 +1,17 @@
 fun main(args: Array<String>) {
-    val text1 = "F2p)v\"y233{0"
-    val string1 = text1.map {char -> char - 2}.joinToString ()
-    val oldValue1 = "5,4,0"
-    val newValue1= "s,u,o"
-    val result1 = string1.replace(oldValue1, newValue1)
-    val text2 = "->c}ttelciFc"
-    val string2 = text2.map {char -> char - 4}.joinToString ()
-    val reverse2 = string2.reversed()
-    val oldValue2 = "_"
-    val newValue2= ""
-    val result2= reverse2.replace(oldValue2, newValue2)
-    println(result1+result2)
-}
+    val mainText = "F2p)v\"y233{0->c}ttelciFc"
+
+    val firstText: String =mainText.substring(0,12)
+    var partOne = firstText.map {char -> char + 1}.joinToString ("")
+    partOne =  partOne.replace("5", "s")
+    partOne =  partOne.replace("4", "u")
+    var partOnePlus = partOne.map {char -> char - 3}.joinToString ("")
+    partOnePlus = partOnePlus.replace("0", "o")
+
+    val secondText: String = mainText.substring(12,24)
+    val reverse = secondText.reversed()
+    var partTwo = reverse.map {char -> char - 4}.joinToString ("")
+    partTwo =  partTwo.replace("_", " ")
+
+    println(partOnePlus+partTwo)
+   }
