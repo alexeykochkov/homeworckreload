@@ -5,7 +5,7 @@ fun main(args: Array<String>) {
         if (e <= 0 ) println("Number must be positive")
         if (e > 0) println(fibo(e))
     } while (e <= 0)
-} fun fibo(e: Int): Int {
+}fun fibo(e: Int): Int {
     if (e==1) return 0
     if (e==2) return 1
     if (e==3) return 1
