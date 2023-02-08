@@ -1,3 +1,5 @@
+package money
+
 class Yuan: CurrencyConverter {
     override var currencyCode = "554"
 

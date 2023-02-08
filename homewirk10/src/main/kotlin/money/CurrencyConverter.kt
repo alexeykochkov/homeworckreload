@@ -1,3 +1,5 @@
+package money
+
 interface CurrencyConverter {
     var currencyCode: String
 
