@@ -1,3 +1,5 @@
+package money
+
 class USDollar: CurrencyConverter {
     override var currencyCode = "847"
 

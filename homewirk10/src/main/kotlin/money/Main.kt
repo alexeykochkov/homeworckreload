@@ -1,3 +1,5 @@
+package money
+
 import java.lang.IllegalArgumentException
 
 fun main(args: Array<String>) {
