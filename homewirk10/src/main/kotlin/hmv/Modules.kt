@@ -3,17 +3,18 @@ package hmv
 import java.util.ArrayDeque
 import kotlin.random.Random
 
-enum class Ammo(var damage: Int, var criticalDamageChance: Double, var coef: Double) {
+enum class Ammo(var default_damage: Int, var criticalDamageChance: Double, var coef: Double) {
     FIRE_BULLET(10, 0.25, 5.0),
     ICE_BULLET(20, 0.20, 10.0),
     ATOMIC_BULLET(40, 0.10, 50.0);
 
 
     fun getCurrentDamage(): Int {
+
         if (isCritical()) {
-            return (damage * coef).toInt()
+            return (default_damage * coef).toInt()
         }
-        return damage
+        return default_damage
     }
 
     fun isCritical(): Boolean {
@@ -93,11 +94,31 @@ open class AbstractWeapon(
         }
     }
 
+    fun shoot (): Int{
+        var ammos = getAmmo()
+        var summarDamage = 0
+        for (i in ammos) {
+           if (i != null) {
+               summarDamage = summarDamage + i.getCurrentDamage()
+           }
+        }
+       println("${ammos.size}, ${summarDamage}")
+
+        return summarDamage
+    }
+
     fun getAmmo(): MutableList<Ammo?> {
         var burst = fireType_.getBurstSize()
         var ammos = mutableListOf<Ammo?>()
         while (burst > 0) {
-            ammos.add(magazin_.pop())
+            var ammo = magazin_.pop()
+//            check(ammo!=null)
+            if (ammo == null) {
+//                TODO(alex): сделать перезарядку унифицированную
+                break
+            }
+            ammos.add(ammo)
+            --burst
         }
         return ammos
     }
@@ -128,13 +149,21 @@ abstract class AbstractWarrior(healpoints: Int, weapon: AbstractWeapon) {
 
     abstract fun attack(another_warrior: AbstractWarrior)
     abstract fun acceptDamage(damage: Int)
+
+    fun isDead (): Boolean {
+        return healpoints_ <= 0
+    }
 }
 
 class General() : AbstractWarrior(healpoints = 300, Bazooka()) {
 
-    private val DAMAGE_DONE = 100
+    init {
+        weapon_.createAndAddAtomicBullet()
+    }
+
 
     override fun attack(another_warrior: AbstractWarrior) {
+        var DAMAGE_DONE = weapon_.shoot()
         another_warrior.acceptDamage(DAMAGE_DONE)
     }
 
@@ -145,9 +174,12 @@ class General() : AbstractWarrior(healpoints = 300, Bazooka()) {
 
 class Capitan() : AbstractWarrior(healpoints = 200, Automat()) {
 
-    private val DAMAGE_DONE = 200
+    init {
+        weapon_.reloadMagazine()
+    }
 
     override fun attack(another_warrior: AbstractWarrior) {
+        var DAMAGE_DONE = weapon_.shoot()
         another_warrior.acceptDamage(DAMAGE_DONE)
     }
 
@@ -155,12 +187,13 @@ class Capitan() : AbstractWarrior(healpoints = 200, Automat()) {
         healpoints_ = healpoints_ - damage
     }
 }
+class Solder() : AbstractWarrior(healpoints = 170, Pistol()) {
 
-class Solder() : AbstractWarrior(healpoints = 100, Pistol()) {
-
-    private val DAMAGE_DONE = 200
-
+    init {
+        weapon_.reloadMagazine()
+    }
     override fun attack(another_warrior: AbstractWarrior) {
+        val DAMAGE_DONE = weapon_.shoot()
         another_warrior.acceptDamage(DAMAGE_DONE)
     }
 

@@ -53,6 +53,13 @@ class Battle() {
     var finished_ = false
 
     fun iterate() {
+//        var player1 = Capitan ()
+//        var palyer2 = General ()
+//        player1.attack(palyer2)
+//        palyer2.attack(player1)
+//        println("${player1.isDead()} ${palyer2.isDead()}")
+//        finished_ = true
+//        return
              // fight
         for (i in 0..teamOne_.size - 1) {
             teamOne_[i].attack(teamTwo_[teamOne_.size - 1 - i])
@@ -61,11 +68,14 @@ class Battle() {
             }
             teamTwo_[i].attack(teamOne_[i])
         }
+        finished_ = true
 
-        println(teamOne_.size)
+
 
 
         // remoove killed
+        teamOne_
+
         teamOne_.forEach { warrior: AbstractWarrior ->
             if (warrior.healpoints_ <= 0)
                 teamOne_.remove(warrior)
@@ -75,6 +85,14 @@ class Battle() {
             if (warrior.healpoints_ <= 0)
                 teamTwo_.remove(warrior)
 //            army = battle
+        }
+
+//        print ALIVE
+        teamOne_.forEach { warrior: AbstractWarrior ->
+            println(warrior.isDead())
+        }
+        teamTwo_.forEach { warrior: AbstractWarrior ->
+            println(warrior.isDead())
         }
 
 //        var iterator = army.iterator()
