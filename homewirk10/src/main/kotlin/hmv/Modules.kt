@@ -63,10 +63,7 @@ open class BurstsFire(val burstsSize: Int) : FireType() {
     }
 }
 
-class SingleShoot() : BurstsFire(1) {
-
-}
-
+class SingleShoot() : BurstsFire(1) { }
 
 open class AbstractWeapon(
     val MAX_MAGAZINE_SIZE: Int,
