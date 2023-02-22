@@ -122,7 +122,7 @@ open class AbstractWeapon(
                summarDamage = summarDamage + i.getCurrentDamage()
            }
         }
-       println("${ammos.size}, ${summarDamage}")
+       println("Ammos - ${ammos.size}, Summar Damage - ${summarDamage}")
 
         return summarDamage
     }
