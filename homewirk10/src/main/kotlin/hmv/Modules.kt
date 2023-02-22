@@ -3,26 +3,33 @@ package hmv
 import java.util.ArrayDeque
 import kotlin.random.Random
 
-enum class Ammo(var default_damage: Int, var criticalDamageChance: Double, var coef: Double) {
-    FIRE_BULLET(10, 0.25, 5.0),
-    ICE_BULLET(20, 0.20, 10.0),
-    ATOMIC_BULLET(40, 0.10, 50.0);
+fun Int.isCritical():Boolean {
+    val MAX_VAL = 99
+    var random = (0..MAX_VAL).random()
+    return random < this
+}
+
+enum class Ammo(var default_damage: Int, var criticalDamageChance: Int, var coef: Double) {
+    FIRE_BULLET(10, 25, 5.0),
+    ICE_BULLET(20, 20, 10.0),
+    STINKY_BULLET(30, 15, 10.0),
+    ATOMIC_BULLET(40, 10, 50.0);
 
 
     fun getCurrentDamage(): Int {
 
-        if (isCritical()) {
+        if (criticalDamageChance.isCritical()) {
             return (default_damage * coef).toInt()
         }
         return default_damage
     }
 
-    fun isCritical(): Boolean {
-        val MAX_VAL = 99
-        var random = (0..MAX_VAL).random()
-        val trashHold = criticalDamageChance * MAX_VAL
-        return random < trashHold
-    }
+//    fun isCritical(): Boolean {
+//        val MAX_VAL = 99
+//        var random = (0..MAX_VAL).random()
+//        val trashHold = criticalDamageChance * MAX_VAL
+//        return random < trashHold
+//    }
 }
 
 
@@ -50,25 +57,30 @@ class WareStack<T>() {
     }
 }
 
-abstract class FireType() {
-
-    abstract fun getBurstSize(): Int
-
-
+sealed class FireType1(open var burstsSize: Int) {
+    data class BurstsFire1 (override var burstsSize: Int):FireType1 (burstsSize)  {}
+    object SingleShoot: FireType1(1) {}
 }
 
-open class BurstsFire(val burstsSize: Int) : FireType() {
-
-    override fun getBurstSize(): Int {
-        return burstsSize
-    }
-}
-
-class SingleShoot() : BurstsFire(1) { }
+//abstract class FireType() {
+//
+//    abstract fun getBurstSize(): Int
+//
+//
+//}
+//
+//open class BurstsFire(val burstsSize: Int) : FireType() {
+//
+//    override fun getBurstSize(): Int {
+//        return burstsSize
+//    }
+//}
+//
+//class SingleShoot() : BurstsFire(1) { }
 
 open class AbstractWeapon(
     val MAX_MAGAZINE_SIZE: Int,
-    val fireType: FireType,
+    val fireType: FireType1,
     var magazin: WareStack<Ammo>
 ) {
 
@@ -87,6 +99,14 @@ open class AbstractWeapon(
     fun createAndAddFireBullet() {
         magazin_.push(Ammo.FIRE_BULLET)
     }
+
+    fun createAndAddStinkyBullet() {
+        magazin_.push(Ammo.STINKY_BULLET)
+    }
+    fun createAndAddIceyBullet() {
+        magazin_.push(Ammo.ICE_BULLET)
+    }
+
 
     fun reloadMagazine() {
         while (magazin_.size() < MAX_MAGAZINE_SIZE_) {
@@ -108,7 +128,7 @@ open class AbstractWeapon(
     }
 
     fun getAmmo(): MutableList<Ammo?> {
-        var burst = fireType_.getBurstSize()
+        var burst = fireType_.burstsSize
         var ammos = mutableListOf<Ammo?>()
         while (burst > 0) {
             var ammo = magazin_.pop()
@@ -124,19 +144,21 @@ open class AbstractWeapon(
     }
 }
 
-class Pistol() : AbstractWeapon(7, SingleShoot(), WareStack<Ammo>()) {
+
+
+class Pistol() : AbstractWeapon(7, FireType1.SingleShoot, WareStack<Ammo>()) {
 
 }
 
-class Automat() : AbstractWeapon(30, BurstsFire(10), WareStack<Ammo>()) {
+class Automat() : AbstractWeapon(30, FireType1.BurstsFire1(10), WareStack<Ammo>()) {
 
 }
 
-class Bazooka() : AbstractWeapon(1, SingleShoot(), WareStack<Ammo>()) {
+class Bazooka() : AbstractWeapon(1, FireType1.SingleShoot, WareStack<Ammo>()) {
 
 }
 
-class Bow() : AbstractWeapon(7, BurstsFire(3), WareStack<Ammo>()) {
+class Bow() : AbstractWeapon(3, FireType1.BurstsFire1(3), WareStack<Ammo>()) {
 
 }
 
@@ -155,14 +177,46 @@ abstract class AbstractWarrior(healpoints: Int, weapon: AbstractWeapon) {
     }
 }
 
-class General() : AbstractWarrior(healpoints = 300, Bazooka()) {
+fun randomWeaponCapitan(): AbstractWeapon {
+    val chanceWeaponGeneral = Random.nextInt(0, 100)
 
+    return if (chanceWeaponGeneral > 50) {
+       Automat()
+    } else Pistol();
+}
+
+fun randomWeaponSolder(): AbstractWeapon {
+    val chanceWeaponGeneral = Random.nextInt(0, 100)
+
+    return if (chanceWeaponGeneral > 50) {
+        Pistol()
+    } else Bow();
+}
+
+fun randomWeaponGeneral(): AbstractWeapon {
+    val chanceWeaponGeneral = Random.nextInt(0, 100)
+
+    return if (chanceWeaponGeneral > 50) {
+        Bazooka()
+    } else Automat();
+}
+
+
+
+class General(private var weapon: AbstractWeapon = randomWeaponGeneral()) : AbstractWarrior(healpoints = 300,weapon) {
+// TODO(alex) произошли изменения в классе генерала, чтобы както зафигачить ему оружие
     init {
-        weapon_.createAndAddAtomicBullet()
+        var bullet = Random.nextInt(0, 100)
+        if (bullet >= 50) {
+            weapon_.createAndAddAtomicBullet()
+        } else weapon_.createAndAddStinkyBullet()
     }
 
 
     override fun attack(another_warrior: AbstractWarrior) {
+//        if () {
+//
+//        }
         var DAMAGE_DONE = weapon_.shoot()
         another_warrior.acceptDamage(DAMAGE_DONE)
     }
@@ -172,9 +226,14 @@ class General() : AbstractWarrior(healpoints = 300, Bazooka()) {
     }
 }
 
-class Capitan() : AbstractWarrior(healpoints = 200, Automat()) {
+class Capitan() : AbstractWarrior(healpoints = 200, randomWeaponCapitan()) {
 
     init {
+        var bullet = Random.nextInt(0, 100)
+        if (bullet >= 50) {
+            weapon_.createAndAddStinkyBullet()
+        } else weapon_.createAndAddIceyBullet()
+
         weapon_.reloadMagazine()
     }
 
@@ -187,9 +246,14 @@ class Capitan() : AbstractWarrior(healpoints = 200, Automat()) {
         healpoints_ = healpoints_ - damage
     }
 }
-class Solder() : AbstractWarrior(healpoints = 170, Pistol()) {
+class Solder() : AbstractWarrior(healpoints = 170, randomWeaponSolder()) {
 
     init {
+        var bullet = Random.nextInt(0, 100)
+        if (bullet >= 50) {
+            weapon_.createAndAddIceyBullet()
+        } else weapon_.createAndAddFireBullet()
+
         weapon_.reloadMagazine()
     }
     override fun attack(another_warrior: AbstractWarrior) {
