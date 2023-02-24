@@ -84,6 +84,7 @@ open class AbstractWeapon(
     var magazin: WareStack<Ammo>
 ) {
 
+    var defaultAmmoType_ = Ammo.FIRE_BULLET
     val MAX_MAGAZINE_SIZE_ = MAX_MAGAZINE_SIZE
     val fireType_ = fireType
     val magazin_ = magazin
@@ -110,8 +111,9 @@ open class AbstractWeapon(
 
     fun reloadMagazine() {
         while (magazin_.size() < MAX_MAGAZINE_SIZE_) {
-            magazin_.push(Ammo.FIRE_BULLET)
+            magazin_.push(defaultAmmoType_)
         }
+        println("reload")
     }
 
     fun shoot (): Int{
@@ -122,7 +124,7 @@ open class AbstractWeapon(
                summarDamage = summarDamage + i.getCurrentDamage()
            }
         }
-       println("Ammos - ${ammos.size}, Summar Damage - ${summarDamage}")
+       println("Ammos - ${ammos.size} ${ammos[0]}, Summar Damage - ${summarDamage}")
 
         return summarDamage
     }
@@ -134,33 +136,34 @@ open class AbstractWeapon(
             var ammo = magazin_.pop()
 //            check(ammo!=null)
             if (ammo == null) {
-//                TODO(alex): сделать перезарядку унифицированную
-                break
+                reloadMagazine()
+                var ammo = magazin_.pop()
+                ammos.add(ammo)
+            } else {
+                ammos.add(ammo)
             }
-            ammos.add(ammo)
+
             --burst
         }
         return ammos
     }
+
+    fun setBulletType(ammo: Ammo) {
+        defaultAmmoType_ = ammo
+    }
 }
 
-
-
-class Pistol() : AbstractWeapon(7, FireType1.SingleShoot, WareStack<Ammo>()) {
-
+object Weapons {
+    fun createPistol() = object: AbstractWeapon(7, FireType1.SingleShoot, WareStack<Ammo>()){
+    }
+    fun createAutomat() = object: AbstractWeapon(30, FireType1.BurstsFire1(10), WareStack<Ammo>()){
+    }
+    fun createBazooka() = object: AbstractWeapon(1, FireType1.SingleShoot, WareStack<Ammo>()){
+    }
+    fun createBow() = object: AbstractWeapon(3, FireType1.BurstsFire1(3), WareStack<Ammo>()){
+    }
 }
 
-class Automat() : AbstractWeapon(30, FireType1.BurstsFire1(10), WareStack<Ammo>()) {
-
-}
-
-class Bazooka() : AbstractWeapon(1, FireType1.SingleShoot, WareStack<Ammo>()) {
-
-}
-
-class Bow() : AbstractWeapon(3, FireType1.BurstsFire1(3), WareStack<Ammo>()) {
-
-}
 
 abstract class AbstractWarrior(healpoints: Int, weapon: AbstractWeapon) {
     var isKilled_ = false
@@ -181,24 +184,24 @@ fun randomWeaponCapitan(): AbstractWeapon {
     val chanceWeaponGeneral = Random.nextInt(0, 100)
 
     return if (chanceWeaponGeneral > 50) {
-       Automat()
-    } else Pistol();
+       Weapons.createAutomat()
+    } else Weapons.createPistol()
 }
 
 fun randomWeaponSolder(): AbstractWeapon {
     val chanceWeaponGeneral = Random.nextInt(0, 100)
 
     return if (chanceWeaponGeneral > 50) {
-        Pistol()
-    } else Bow();
+       Weapons.createPistol()
+    } else Weapons.createBow()
 }
 
 fun randomWeaponGeneral(): AbstractWeapon {
     val chanceWeaponGeneral = Random.nextInt(0, 100)
 
     return if (chanceWeaponGeneral > 50) {
-        Bazooka()
-    } else Automat();
+       Weapons.createBazooka()
+    } else Weapons.createAutomat()
 }
 
 
@@ -208,8 +211,9 @@ class General(private var weapon: AbstractWeapon = randomWeaponGeneral()) : Abst
     init {
         var bullet = Random.nextInt(0, 100)
         if (bullet >= 50) {
-            weapon_.createAndAddAtomicBullet()
-        } else weapon_.createAndAddStinkyBullet()
+            weapon_.setBulletType(Ammo.ATOMIC_BULLET)
+        } else weapon_.setBulletType(Ammo.STINKY_BULLET)
+    weapon_.reloadMagazine()
     }
 
 
@@ -231,9 +235,8 @@ class Capitan() : AbstractWarrior(healpoints = 200, randomWeaponCapitan()) {
     init {
         var bullet = Random.nextInt(0, 100)
         if (bullet >= 50) {
-            weapon_.createAndAddStinkyBullet()
-        } else weapon_.createAndAddIceyBullet()
-
+            weapon_.setBulletType(Ammo.STINKY_BULLET)
+        } else weapon_.setBulletType(Ammo.ICE_BULLET)
         weapon_.reloadMagazine()
     }
 
@@ -251,9 +254,8 @@ class Solder() : AbstractWarrior(healpoints = 170, randomWeaponSolder()) {
     init {
         var bullet = Random.nextInt(0, 100)
         if (bullet >= 50) {
-            weapon_.createAndAddIceyBullet()
-        } else weapon_.createAndAddFireBullet()
-
+            weapon_.setBulletType(Ammo.ICE_BULLET)
+        } else weapon_.setBulletType(Ammo.FIRE_BULLET)
         weapon_.reloadMagazine()
     }
     override fun attack(another_warrior: AbstractWarrior) {

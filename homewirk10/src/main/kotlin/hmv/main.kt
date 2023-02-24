@@ -9,18 +9,7 @@ fun test0() {
     var damage2 = b.getCurrentDamage()
 }
 
-object Weapons {
-    fun createPistol() = object: AbstractWeapon(7, FireType1.SingleShoot, WareStack<Ammo>()){
-    }
-    fun createAutomat() = object: AbstractWeapon(7, FireType1.SingleShoot, WareStack<Ammo>()){
-    }
-    fun createBazooka() = object: AbstractWeapon(7, FireType1.SingleShoot, WareStack<Ammo>()){
-    }
-    fun createBow() = object: AbstractWeapon(7, FireType1.SingleShoot, WareStack<Ammo>()){
-    }
 
-
-}
 
 
 /////////////////////////////////////
@@ -95,6 +84,22 @@ class Team() {
         var teamTwo_ = Team().create()
         var finished_ = false
 
+        fun printState () {
+            teamOne_.forEach { println("HP T1 - ${it.healpoints_}")}
+            teamTwo_.forEach { println("HP T2 -${it.healpoints_}") }
+
+            println(teamOne_.size)
+            println(teamTwo_.size)
+
+            if (teamOne_.isEmpty()) {
+                println("team 2 win")
+
+            } else if (teamTwo_.isEmpty()) {
+                println("team 1 win")
+
+            }
+        }
+
         fun iterate() {
 //        var player1 = Capitan ()
 //        var palyer2 = General ()
@@ -106,39 +111,46 @@ class Team() {
             // fight
 //            TODO (логика ебать от меня, спасибо нахуй 1)
             run {
-                fun deleatAllDead() {
-                    teamOne_.forEach { warrior: AbstractWarrior ->
-                        if (warrior.healpoints_ <= 0)
-                            teamOne_.remove(warrior)
-                        println("is Alive team 1 ${teamOne_}")
-                        println("HP team 1 ${warrior.healpoints_}")
-                    }
 
-                    teamTwo_.forEach { warrior: AbstractWarrior ->
-                        if (warrior.healpoints_ <= 0)
-                            teamTwo_.remove(warrior)
-                        println("is Alive team 2 ${teamTwo_}")
-                        println("HP team 2 ${warrior.healpoints_}")
-                    }
+                for (i in teamOne_) {
+                    var unit1 = teamOne_.random()
+                    var unit2 = teamTwo_.random()
+                    unit1.attack(unit2)
+
+                    println(" Team 1 atace Team 2 - Unit ${unit1} atake ${unit2}")
+                }
+                for (i in teamTwo_) {
+                    var unit1 = teamOne_.random()
+                    var unit2 = teamTwo_.random()
+                    unit2.attack(unit1)
+                    println("Team 2 atace Team 1 - Unit ${unit2} atake ${unit1}")
                 }
 
-                var team1 = mutableListOf<AbstractWarrior>()
-                var team2 = mutableListOf<AbstractWarrior>()
-
-                for (i in team1) {
-                    teamOne_.random().attack(teamTwo_.random())
+                var team1 =teamOne_.filter {
+                    warrior: AbstractWarrior ->
+                    warrior.healpoints_ > 0
                 }
-                deleatAllDead()
 
-                for (i in team2) {
-                    teamTwo_.random().attack(teamOne_.random())
-
+                var team2 =teamTwo_.filter {
+                        warrior: AbstractWarrior ->
+                    warrior.healpoints_ > 0
                 }
-                deleatAllDead()
 
-                finished_= true
+                teamOne_= team1 as MutableList<AbstractWarrior>
+                teamTwo_= team2 as MutableList<AbstractWarrior>
+
+
+
+                if (teamOne_.isEmpty()) {
+
+                    finished_ = true
+                } else if (teamTwo_.isEmpty()) {
+
+                    finished_ = true
+                }
+
+//                finished_= true
             }
-
 
 
 //            TODO (логика ебать от меня, спасибо нахуй 2)
@@ -267,9 +279,7 @@ class Team() {
 //                army.remove(item)
 //        println(army)
 // TODO (и вот эту поебень добавил а то нихуя непонятно)
-            if (teamOne_.size > teamTwo_.size) {
-                println("team 1 win")
-            } else println("team 2 win")
+
         }
 
     }
@@ -281,6 +291,7 @@ class Team() {
 
         while (!battle.finished_) {
             battle.iterate()
+            battle.printState()
         }
     }
 
